@@ -90,7 +90,7 @@ class KTBParserGUI(QMainWindow):
         self.current_file_path = None
 
     def initUI(self):
-        self.setWindowTitle('KTB Parser')
+        self.setWindowTitle('KTB Parser - untitled.ktb')
         self.setGeometry(100, 100, 800, 600)
 
         # Set font for the entire application
@@ -130,6 +130,11 @@ class KTBParserGUI(QMainWindow):
         closeFile.setShortcut('Ctrl+W')
         closeFile.triggered.connect(self.closeFile)
         fileMenu.addAction(closeFile)
+
+        # Sort by first character's unicode action
+        sortAction = QAction('Sort Table', self)
+        sortAction.triggered.connect(self.sortTable)
+        fileMenu.addAction(sortAction)
 
         # Duplicate row action
         duplicateRowAction = QAction('Duplicate Row', self)
@@ -214,6 +219,7 @@ class KTBParserGUI(QMainWindow):
         if filePath:
             self.current_file_path = filePath
             self.loadFile(filePath)
+            self.setWindowTitleWithFilePath()
 
     def loadFile(self, file_path):
         self.progressBar.setValue(0)
@@ -269,6 +275,7 @@ class KTBParserGUI(QMainWindow):
             if reply == QMessageBox.Yes:
                 self.collectTableData()
                 self.save_ktb(self.current_file_path)
+                self.setWindowTitleWithFilePath()
                 QMessageBox.information(self, "Saved", "File saved successfully")
             else:
                 self.saveFileAsDialog()
@@ -282,6 +289,7 @@ class KTBParserGUI(QMainWindow):
             self.collectTableData()
             self.save_ktb(filePath)
             self.current_file_path = filePath
+            self.setWindowTitleWithFilePath()
             QMessageBox.information(self, "Saved", "File saved successfully")
 
     def addRow(self):
@@ -443,6 +451,7 @@ class KTBParserGUI(QMainWindow):
         self.tableWidget.setRowCount(0)
         self.kerning_list = []
         self.current_file_path = None
+        self.setWindowTitleWithFilePath()
         QMessageBox.information(self, "Closed", "File closed successfully")
 
     def checkUnicode(self, item):
@@ -475,6 +484,18 @@ class KTBParserGUI(QMainWindow):
     def duplicateSelectedRow(self):
         selected_row = self.tableWidget.currentRow()
         self.duplicateRow(selected_row)
+
+    def sortTable(self):
+        self.collectTableData()
+        self.kerning_list.sort(key=lambda x: (ord(x['first_character']) if x['first_character'] else -1,
+                                            ord(x['second_character']) if x['second_character'] else -1))
+        self.loadTable(self.kerning_list)
+
+    def setWindowTitleWithFilePath(self):
+        if self.current_file_path:
+            self.setWindowTitle(f'KTB Parser - {self.current_file_path}')
+        else:
+            self.setWindowTitle('KTB Parser - untitled.ktb')
 
 if __name__ == '__main__':
 
