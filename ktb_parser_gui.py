@@ -1,5 +1,6 @@
 import sys
 import json
+import lib.unicodetools as ut
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction, QFileDialog, QTableWidget, QTableWidgetItem,
                              QPushButton, QVBoxLayout, QWidget, QHBoxLayout, QMessageBox, QProgressBar, 
                              QLineEdit, QComboBox, QLabel, QStyledItemDelegate, QMenu, QAbstractItemView)
@@ -59,7 +60,7 @@ class FileLoader(QThread):
         kerning_list = self.parse_ktb(self.file_path)
         self.finished.emit(kerning_list)
 
-    def parse_ktb(self, file_path):
+    def parse_ktb(self, file_path, is_tranform: bool = True):
         def read_int(reader, num_bytes):
             return int.from_bytes(reader.read(num_bytes), byteorder='little', signed=True)
 
@@ -73,6 +74,14 @@ class FileLoader(QThread):
                 left = read_utf16(reader, 2)
                 right = read_utf16(reader, 2)
                 kerning = read_int(reader, 2)
+
+                if is_tranform:
+                    for k, v in ut.UNICODE_MAP.items():
+                        if left == v:
+                            left = k
+                        if right == v:
+                            right = k
+
                 kerning_entry = {
                     "first_character": left,
                     "second_character": right,
@@ -347,7 +356,7 @@ class KTBParserGUI(QMainWindow):
             self.tableWidget.item(row, 0).setBackground(color)
             self.tableWidget.item(row, 1).setBackground(color)
 
-    def save_ktb(self, file_path):
+    def save_ktb(self, file_path, is_transform: bool = True):
         def write_int(value, num_bytes):
             return value.to_bytes(num_bytes, byteorder='little', signed=True)
 
@@ -357,10 +366,23 @@ class KTBParserGUI(QMainWindow):
         with open(file_path, 'wb') as writer:
             count = len(self.kerning_list)
             writer.write(write_int(count, 2))
-            for entry in self.kerning_list:
-                writer.write(write_utf16(entry['first_character'], 2))
-                writer.write(write_utf16(entry['second_character'], 2))
-                writer.write(write_int(entry['kerning'], 2))
+
+            if is_transform:
+                for entry in self.kerning_list:
+                    try:
+                        writer.write(write_utf16(ut.UNICODE_MAP[entry['first_character']], 2))
+                    except KeyError:
+                        writer.write(write_utf16(entry['first_character'], 2))
+                    try:
+                        writer.write(write_utf16(ut.UNICODE_MAP[entry['second_character']], 2))
+                    except KeyError:
+                        writer.write(write_utf16(entry['second_character'], 2))
+                    writer.write(write_int(entry['kerning'], 2))
+            else:
+                for entry in self.kerning_list:
+                    writer.write(write_utf16(entry['first_character'], 2))
+                    writer.write(write_utf16(entry['second_character'], 2))
+                    writer.write(write_int(entry['kerning'], 2))
 
     def collectTableData(self):
         self.kerning_list = []
