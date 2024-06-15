@@ -1,35 +1,7 @@
 from tkinter import filedialog, Tk
 import lib.unicodetools as ut
 import os
-
-# Normal consonants (NC), without extra ascender/descender
-NC = ["ก", "ข", "ฃ", "ค", "ฅ", "ฆ", "ง", "จ", "ฉ", "ช", "ซ", "ฌ", "ฑ", "ฒ", "ณ", "ด", "ต", "ถ", "ท", "ธ", "น", "บ", "ผ", "พ", "ภ", "ม", "ย", "ร", "ล", "ว", "ศ", "ษ", "ส", "ห", "อ", "ฮ"]
-# Consonants with right extra ascender (AC), namely ป (PO PLA, U+0E1B), ฝ (FO FA, U+0E1D), ฟ (FO FAN, U+0E1F) and in some fonts ฬ (LO CHULA, U+0E2C)
-AC = ["ป", "ฝ", "ฟ", "ฬ"]
-# Consonants with removable descender (RC), namely ญ (YO YING, U+0E0D) and ฐ (THO THAN, U+0E10)
-RC = ["ญ", "ฐ"]
-# Consonants with strict descender (DC), namely ฎ (DO CHADA, U+0E0E) and ฏ (TO PATAK, U+0E0F)
-DC = ["ฎ", "ฏ"]
-
-# Normal vowels (NV)
-NV = ["ะ", "า", "เ", "แ", "โ", "ใ", "ไ", "ๅ", "ๆ"]
-# Below vowels (BV)
-BV = ["ุ", "ู"]
-# Shifted down below vowels (SDBV)
-SDBV = ["\\uf718", "\\uf719"]
-# Above vowels (AV)
-AV = ['ั', 'ํ', 'ิ', 'ี', 'ึ', 'ื', "็"]
-# Left vowels (LV)
-LV = ["\\uf710", "\\uf711", "\\uf701", "\\uf702", "\\uf703", "\\uf704", "\\uf712"]
-
-# all thai tones (T)
-tone = ["่", "้", "๊", "๋", "์"]
-# Low left tones (LLT)
-LLT = ["\\uf705", "\\uf706", "\\uf707", "\\uf708", "\\uf709"]
-# Low right tones (LRT) - same x as normal
-LRT = ["\\uf70a", "\\uf70b", "\\uf70c", "\\uf70d", "\\uf70e"]
-# Upper left tones (ULT)
-ULT = ["\\uf713", "\\uf714", "\\uf715", "\\uf716", "\\uf717"]
+from lib.unicodetools import tone, AC, AV, BV, DC, NC, RC, LLT, ULT, LRT, SDBV, LV
 
 def decompose_sara_am(text: str):
 	# SARA AM (U+0E33) must be decomposed into NIKHAHIT (U+0E4D) and SARA AA (U+0E32).
@@ -144,7 +116,6 @@ def main():
 	file_paths = filedialog.askopenfilenames(initialdir="C:/Users/modda/OneDrive/Documents/OmegaT Project/target", title="Select translated files")
 	save_dir = filedialog.askdirectory(initialdir="C:/Users/modda/OneDrive/Documents/OmegaT Project/unicodeescaped", title="Select save directory")
 	
-	# is_fake_latin = input("Is the text in fake Latin? (y/n): ").lower() == "y"
 	for file_path in file_paths:
 		file_name = os.path.basename(file_path)
 		print(f"Processing {file_name}...")
