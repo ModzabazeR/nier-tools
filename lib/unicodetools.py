@@ -153,6 +153,14 @@ LRT = ["\\uf70a", "\\uf70b", "\\uf70c", "\\uf70d", "\\uf70e"]
 # Upper left tones (ULT)
 ULT = ["\\uf713", "\\uf714", "\\uf715", "\\uf716", "\\uf717"]
 
+# Classes of consonant
+# High Class Consonants (HCC)
+HCC = ["ข", "ฃ", "ฉ", "ฐ", "ถ", "ผ", "ฝ", "ศ", "ษ", "ส", "ห"]
+# Middle Class Consonants (MCC)
+MCC = ["ก", "จ", "ฎ", "ฏ", "ด", "ต", "บ", "ป", "อ"]
+# Low Class Consonants (LCC)
+LCC = ["ค", "ฅ", "ฆ", "ง", "ช", "ซ", "ฌ", "ญ", "ฑ", "ณ", "ฒ", "ท", "ธ", "น", "พ", "ฟ", "ภ", "ม", "ย", "ร", "ล", "ว", "ฬ", "ฮ"]
+
 if __name__ == "__main__":
 	# print(UNICODE_MAP)
 	# print(UNICODE_MAP_DEC)

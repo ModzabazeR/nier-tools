@@ -2,6 +2,14 @@ from tkinter import filedialog, Tk
 import lib.unicodetools as ut
 import os
 from lib.unicodetools import tone, AC, AV, BV, DC, NC, RC, LLT, ULT, LRT, SDBV, LV
+import csv
+
+with open("output/thaiji.csv", "r", encoding="utf-8") as f:
+	reader = csv.reader(f)
+	next(reader)
+	thaiji = {row[0]: int(row[2]) for row in reader}
+	# sort by len of key
+	thaiji = dict(sorted(thaiji.items(), key=lambda x: len(x[0]), reverse=True))
 
 def decompose_sara_am(text: str):
 	# SARA AM (U+0E33) must be decomposed into NIKHAHIT (U+0E4D) and SARA AA (U+0E32).
@@ -108,6 +116,23 @@ def string_to_unicode_escape(text: str, is_tranform: bool = True):
 
 	return result
 
+def string_to_thaiji_escape(text: str, is_tranform: bool = True):
+	text = decompose_sara_am(text)
+	for key in thaiji:
+		text = text.replace(key, f"\\u{thaiji[key]:04x}")
+
+	result = ""
+	for c in text:
+		if ord(c) >= 3585 and ord(c) <= 3675:
+			result += f"\\u{ord(c):04x}"
+		else:
+			result += c
+
+	if is_tranform:
+		result = tranform_thai(result)
+
+	return result
+
 # test_result = r"\u0e1e\u0e35\u0e48\u0e1b\uf711\uf716\u0e32\u0e0e\uf719\u0e19\u0e39\uf70d\u0e40\u0e1b\uf705\u0e32\u0e1d\u0e38\uf705\u0e19\u0e2b\uf70f\u0e39\uf70a\u0e01\uf70b\u0e19\u0e1b\uf702\uf713\u0e40\u0e17\uf70a\u0e32\uf700\u0e38\u0e25\u0e35"
 # print(string_to_unicode_escape("พี่ป๋ำฎูนู๋เป่าฝุ่นหญู่ก้นปี่เท่าฐุลี") == test_result)
 
@@ -123,7 +148,7 @@ def main():
 		escaped_text = ""
 		with open(file_path, "r", encoding="utf-8") as f:
 			text = f.read()
-			escaped_text = string_to_unicode_escape(text)
+			escaped_text = string_to_thaiji_escape(text)
 
 		with open(f"{save_dir}/{file_name}", "w", encoding="utf-8") as f:
 			f.write(escaped_text)
