@@ -36,3 +36,4 @@ Thumbs.db
 fonts/*.ttf
 fonts/*.otf
 output/
+.env
