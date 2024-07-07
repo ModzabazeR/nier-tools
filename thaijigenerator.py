@@ -39,18 +39,23 @@ def text_to_image(text: str, font_path: str, font_size: int, image_path: str, ce
 	# Create a blank image with transparent background
 	image = Image.new("RGBA", (cell_width, cell_height), (0, 0, 0, 0))
 	draw = ImageDraw.Draw(image)
+	draw.fontmode = "RGBA"
 
 	# align text center and draw
 	text_width, text_height = bbox[2:]
-	draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(255, 255, 255, 255))
+	if font_name == "LayijiMahaniyomV1.ttf":
+		draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(255, 255, 255, 255), stroke_width=1, stroke_fill=(255, 255, 255, 0))
+	else:
+		draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(255, 255, 255, 255))
 
-	# copy pixel values from alpha to r, g, and b
-	pixels = image.load()
-	for y in range(image.height):
-		for x in range(image.width):
-			alpha = pixels[x, y][3]
-			pixels[x, y] = (alpha, alpha, alpha, alpha)
-
+	# pixels = image.load()
+	# if font_name != "LayijiMahaniyomV1.ttf":
+	# 	# copy pixel values from alpha to r, g, and b channels
+	# 	for y in range(image.height):
+	# 		for x in range(image.width):
+	# 			alpha = pixels[x, y][3]
+	# 			pixels[x, y] = (alpha, alpha, alpha, alpha)
+		
 	if font_name == "LayijiMahaniyomV1.ttf":
 		image = image.crop((0, 0, image.width, image.height - 10))
 	elif font_name == "supermarket_test.ttf":
@@ -72,9 +77,8 @@ def generate_combinations() -> "list[str]":
 						(vowel == "ํ" and t == "์") or \
 						(vowel == "ั" and t == "์") or \
 						(t == "์" and vowel not in ["ิ", "ุ"]) or \
-						(vowel == "ํ") or \
-						(consonant in HCC and t in ["๊", "๋"]) or \
-						(consonant in LCC and t in ["๊", "๋"]):
+						(consonant in HCC and t in ["๊", "๋"] and vowel != "ั") or \
+						(consonant in LCC and t in ["๊", "๋"] and vowel != "ั"):
 					continue
 				combinations.append(consonant + vowel + t)
 
@@ -129,14 +133,14 @@ def generate_font_images(font: str, generate_thai: bool = False, generate_latin:
 fonts = [
 	{
 		"name": "font_01",
-		"path": "fonts/Quark-Bold.otf",
+		"path": "fonts/FC Iconic Regular.ttf",
 		"size": 38,
 		"cell_height": 52,
 		"padding_x": 5,
 	},
 	{
 		"name": "font_36",
-		"path": "fonts/Quark-Light.otf",
+		"path": "fonts/FC Iconic Light.ttf",
 		"size": 38,
 		"cell_height": 52,
 		"padding_x": 5,
@@ -144,16 +148,16 @@ fonts = [
 	{
 		"name": "font_11",
 		"path": "fonts/LayijiMahaniyomV1.ttf",
-		"size": 44,
-		"cell_height": 64,
-		"padding_x": 5,
+		"size": 38,
+		"cell_height": 60,
+		"padding_x": 4,
 	},
 	{
 		"name": "font_05",
-		"path": "fonts/Quark-Bold.otf",
-		"size": 32,
-		"cell_height": 48,
-		"padding_x": 7,
+		"path": "fonts/FC Iconic Medium.ttf",
+		"size": 30,
+		"cell_height": 41,
+		"padding_x": 6,
 	},
 	{
 		"name": "font_04",
@@ -168,15 +172,33 @@ fonts = [
 		"size": 52,
 		"cell_height": 52,
 		"padding_x": 5,
+	},
+	{
+		"name": "font_03",
+		"path": "fonts/TP Tankhun Bold.ttf",
+		"size": 54,
+		"cell_height": 60,
+		"padding_x": 5,
+	},
+	{
+		"name": "font_02",
+		"path": "fonts/FC Iconic Medium.ttf",
+		"size": 72,
+		"cell_height": 80,
+		"padding_x": 5,
 	}
 ]
 
+# combinations = generate_combinations()
+# print(f"Generated {len(combinations)} combinations.")
 # generate_thaiji_csv(combinations, "output/thaiji.csv")
 # generate_shell_code(combinations, "output/code.txt")
 
 # generate_font_images(fonts[0], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_01
 # generate_font_images(fonts[1], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_36
-# generate_font_images(fonts[2], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_11
-generate_font_images(fonts[3], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_05
+generate_font_images(fonts[2], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_11
+# generate_font_images(fonts[3], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_05
 # generate_font_images(fonts[4], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_04
 # generate_font_images(fonts[5], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_00
+# generate_font_images(fonts[6], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_03
+# generate_font_images(fonts[7], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_02

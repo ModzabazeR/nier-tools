@@ -123,7 +123,7 @@ def string_to_thaiji_escape(text: str, is_tranform: bool = True):
 
 	result = ""
 	for c in text:
-		if ord(c) >= 3585 and ord(c) <= 3675:
+		if (ord(c) >= 3585 and ord(c) <= 3675) or (ord(c) >= 12288 and ord(c) <= 12351):
 			result += f"\\u{ord(c):04x}"
 		else:
 			result += c
