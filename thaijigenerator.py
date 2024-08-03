@@ -136,6 +136,7 @@ def generate_font_images(font_name: str, fonts: dict, generate_thai: bool = Fals
 
 	if generate_thaiji:
 		start = 3712
+		print("Generating Thaiji characters...")
 		for c in COMBINATIONS:
 			text_to_image(c, font["path"], font["size"], f"output/{font_name}/thaiji/{start:04x}.png", font["cell_height"], font["padding_x"], font_name=font_name)
 			start += 1
