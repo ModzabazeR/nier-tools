@@ -20,14 +20,12 @@ def find_consonant(text: str) -> str:
 				return chr(thai)
 	return "ก"
 
-def text_to_image(text: str, font_path: str, font_size: int, image_path: str, cell_height: int, padding_x: int = 5, do_escape: bool = True):
+def text_to_image(text: str, font_path: str, font_size: int, image_path: str, cell_height: int, padding_x: int = 5, do_escape: bool = True, font_name: str = None):
 	if not os.path.exists(os.path.dirname(image_path)):
 		os.makedirs(os.path.dirname(image_path))
 
 	if do_escape:
 		text = string_to_unicode_escape(text, False).replace("\\\\", "\\").encode("utf-8").decode("unicode-escape")
-
-	font_name = os.path.basename(font_path)
 
 	# Load font
 	font = ImageFont.truetype(font_path, font_size)
@@ -43,28 +41,33 @@ def text_to_image(text: str, font_path: str, font_size: int, image_path: str, ce
 
 	# align text center and draw
 	text_width, text_height = bbox[2:]
-	if font_name == "LayijiMahaniyomV1.ttf":
+	if font_name == "font_11":
 		draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(255, 255, 255, 255), stroke_width=1, stroke_fill=(255, 255, 255, 0))
+	elif font_name == "font_05":
+		# draw text shadow
+		shadow_color = (50, 50, 50, 0)
+		draw.text(((image.width - text_width) // 2 + 1, (image.height - text_height) // 2 + 1), text, font=font, fill=shadow_color)
+		draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(200, 200, 200, 255))
 	else:
 		draw.text(((image.width - text_width) // 2, (image.height - text_height) // 2), text, font=font, fill=(255, 255, 255, 255))
 
 	# pixels = image.load()
-	# if font_name != "LayijiMahaniyomV1.ttf":
+	# if font_name != "font_11":
 	# 	# copy pixel values from alpha to r, g, and b channels
 	# 	for y in range(image.height):
 	# 		for x in range(image.width):
 	# 			alpha = pixels[x, y][3]
 	# 			pixels[x, y] = (alpha, alpha, alpha, alpha)
 		
-	if font_name == "LayijiMahaniyomV1.ttf":
+	if font_name == "font_11":
 		image = image.crop((0, 0, image.width, image.height - 10))
-	elif font_name == "supermarket_test.ttf":
+	elif font_name == "font_04":
 		image = image.crop((0, 0, image.width, image.height - 14))
 
 	# Save image
 	image.save(image_path)
 
-def generate_combinations() -> "list[str]":
+def generate_combinations(explicit_add: "list[str]" = None) -> "list[str]":
 	consonants = NC + AC + RC + DC
 	vowels = BV + AV
 
@@ -93,7 +96,14 @@ def generate_combinations() -> "list[str]":
 				continue
 			combinations.append(consonant + t)
 
+	if explicit_add:
+		combinations += explicit_add
+
+	print(f"Generated {len(combinations)} combinations...")
+
 	return sorted(list(set(combinations)))
+
+COMBINATIONS = generate_combinations(["ธุ์"])
 
 def generate_thaiji_csv(comb: "list[str]", path: str):
 	with open(path, "w", newline="", encoding="utf-8") as f:
@@ -107,98 +117,88 @@ def generate_shell_code(comb: "list[str]", path: str):
 		for i, c in enumerate(comb):
 			f.write(f"--char $((16#{3712 + i:04x})) fonts/${{1}}/{3712 + i:04x}.png \\\n")
 
-def generate_font_images(font: str, generate_thai: bool = False, generate_latin: bool = False, generate_thaiji: bool = False):
-	print(f"----* Generating images for {font['name']}... *----")
+def generate_font_images(font_name: str, fonts: dict, generate_thai: bool = False, generate_latin: bool = False, generate_thaiji: bool = False):
+	print(f"----* Generating images for {font_name}... *----")
+
+	font = fonts[font_name]
 
 	if generate_thai:
 		print("Generating normal Thai characters...")
 		for i in range(3585, 3676):
 			if i in [3633, 3635, 3636, 3637, 3638, 3639, 3640, 3641, 3642, 3643, 3644, 3645, 3646, 3655, 3656, 3657, 3658, 3659, 3660, 3661, 3662]:
 				continue
-			text_to_image(chr(i), font["path"], font["size"], f"output/{font['name']}/thai/{i:04x}.png", font["cell_height"], font["padding_x"], False)
+			text_to_image(chr(i), font["path"], font["size"], f"output/{font_name}/thai/{i:04x}.png", font["cell_height"], font["padding_x"], False, font_name=font_name)
 
 	if generate_latin:
 		print("Generating latin characters...")
 		for i in range(33, 127):
-			text_to_image(chr(i), font["path"], font["size"], f"output/{font['name']}/latin/{i:04x}.png", font["cell_height"], font["padding_x"], False)
+			text_to_image(chr(i), font["path"], font["size"], f"output/{font_name}/latin/{i:04x}.png", font["cell_height"], font["padding_x"], False, font_name=font_name)
 
 	if generate_thaiji:
-		combinations = generate_combinations()
-		print(f"Generating {len(combinations)} Thaijis...")
 		start = 3712
-		for c in combinations:
-			text_to_image(c, font["path"], font["size"], f"output/{font['name']}/thaiji/{start:04x}.png", font["cell_height"], font["padding_x"])
+		for c in COMBINATIONS:
+			text_to_image(c, font["path"], font["size"], f"output/{font_name}/thaiji/{start:04x}.png", font["cell_height"], font["padding_x"], font_name=font_name)
 			start += 1
 
-fonts = [
-	{
-		"name": "font_01",
+fonts = {
+	"font_01": {
 		"path": "fonts/FC Iconic Regular.ttf",
 		"size": 38,
 		"cell_height": 52,
 		"padding_x": 5,
 	},
-	{
-		"name": "font_36",
+	"font_36": {
 		"path": "fonts/FC Iconic Light.ttf",
 		"size": 38,
 		"cell_height": 52,
 		"padding_x": 5,
 	},
-	{
-		"name": "font_11",
+	"font_11": {
 		"path": "fonts/LayijiMahaniyomV1.ttf",
 		"size": 38,
 		"cell_height": 60,
 		"padding_x": 4,
 	},
-	{
-		"name": "font_05",
+	"font_05": {
 		"path": "fonts/FC Iconic Medium.ttf",
 		"size": 30,
 		"cell_height": 41,
 		"padding_x": 6,
 	},
-	{
-		"name": "font_04",
+	"font_04": {
 		"path": "fonts/supermarket_test.ttf",
 		"size": 38,
 		"cell_height": 68,
 		"padding_x": 5,
 	},
-	{
-		"name": "font_00",
+	"font_00": {
 		"path": "fonts/2005_iannnnnAMD.ttf",
 		"size": 52,
 		"cell_height": 52,
 		"padding_x": 5,
 	},
-	{
-		"name": "font_03",
+	"font_03": {
 		"path": "fonts/TP Tankhun Bold.ttf",
 		"size": 54,
 		"cell_height": 60,
 		"padding_x": 5,
 	},
-	{
-		"name": "font_02",
+	"font_02": {
 		"path": "fonts/FC Iconic Medium.ttf",
 		"size": 72,
 		"cell_height": 80,
 		"padding_x": 5,
 	}
-]
+}
 
-# combinations = generate_combinations()
-# print(f"Generated {len(combinations)} combinations.")
-# generate_thaiji_csv(combinations, "output/thaiji.csv")
-# generate_shell_code(combinations, "output/code.txt")
+generate_thaiji_csv(COMBINATIONS, "output/thaiji.csv")
+# generate_shell_code(COMBINATIONS, "output/code.txt")
 
-# generate_font_images(fonts[0], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_01
-# generate_font_images(fonts[1], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_36
-generate_font_images(fonts[2], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_11
-# generate_font_images(fonts[3], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_05
-# generate_font_images(fonts[4], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_04
-# generate_font_images(fonts[5], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_00
-# generate_font_images(fonts[6], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_03
-# generate_font_images(fonts[7], generate_thai=True, generate_latin=True, generate_thaiji=True) # font_02
+generate_font_images("font_00", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_01", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_02", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_03", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_04", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_05", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_11", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
+generate_font_images("font_36", fonts, generate_thai=True, generate_latin=True, generate_thaiji=True)
